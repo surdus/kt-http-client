@@ -75,31 +75,39 @@ interface Json {
         throw IllegalStateException("Can't get json value")
     }
 
+    operator fun get(index: Int): Json {
+        throw IllegalStateException("Can't get json value by index")
+    }
+
     operator fun invoke(key: String): Json? {
         throw IllegalStateException("Can't get json value")
     }
 
-    operator fun set(key: String, value: Int) {
+    operator fun set(key: String, value: Int?) {
         throw IllegalStateException("Can't set json value")
     }
 
-    operator fun set(key: String, value: String) {
+    operator fun set(key: String, value: String?) {
         throw IllegalStateException("Can't set json value")
     }
 
-    operator fun set(key: String, value: Boolean) {
+    operator fun set(key: String, value: Boolean?) {
         throw IllegalStateException("Can't set json value")
     }
 
-    operator fun set(key: String, value: Json) {
+    operator fun set(key: String, value: Json?) {
         throw IllegalStateException("Can't set json value")
     }
 
-    operator fun set(key: String, fillJson: Json.() -> Unit) {
+    operator fun set(key: String, fillJson: JsonObject.() -> Unit) {
         throw IllegalStateException("Can't set json value")
     }
 
     operator fun set(key: String, nothing: Nothing?) {
+        throw IllegalStateException("Can't set json value")
+    }
+
+    operator fun set(key: String, values: List<Any>?) {
         throw IllegalStateException("Can't set json value")
     }
 
@@ -113,6 +121,8 @@ interface Json {
         get() = throw IllegalStateException("Can't get long value")
     val size: Int
         get() = throw IllegalStateException("Can't get size value")
+    val array: List<Json>?
+        get() = throw IllegalStateException("Can't get array value")
 }
 
 class JsonObject(val data: MutableMap<String, Json> = mutableMapOf()) : Json {
@@ -128,28 +138,42 @@ class JsonObject(val data: MutableMap<String, Json> = mutableMapOf()) : Json {
         return data[key]
     }
 
-    override fun set(key: String, value: Int) {
+    override fun set(key: String, value: Int?) {
         data[key] = JsonNumber(value)
     }
 
-    override fun set(key: String, value: String) {
+    override fun set(key: String, value: String?) {
         data[key] = JsonString(value)
     }
 
-    override fun set(key: String, value: Boolean) {
+    override fun set(key: String, value: Boolean?) {
         data[key] = JsonBoolean(value)
     }
 
-    override fun set(key: String, value: Json) {
-        data[key] = value
+    override fun set(key: String, value: Json?) {
+        data[key] = value ?: JsonNull()
     }
 
     override fun set(key: String, nothing: Nothing?) {
         data[key] = JsonNull()
     }
 
-    override fun set(key: String, fillJson: Json.() -> Unit) {
+    override fun set(key: String, fillJson: JsonObject.() -> Unit) {
         data[key] = JsonObject().apply(fillJson)
+    }
+
+    override fun set(key: String, values: List<Any>?) {
+        val jsonList = values?.map {
+            when (it) {
+                is String -> JsonString(it)
+                is Number -> JsonNumber(it)
+                is Boolean -> JsonBoolean(it)
+                is Nothing -> JsonNull()
+                is Json -> it
+                else -> throw IllegalStateException("Cant get json value from ${it.javaClass}")
+            }
+        }?.toMutableList()
+        data[key] = jsonList?.let { JsonArray(it) } ?: JsonNull()
     }
 }
 
@@ -182,6 +206,14 @@ class JsonNull : Json {
 }
 
 class JsonArray(val data: MutableList<Json>): Json {
+
+    override fun get(index: Int): Json {
+        return data[index]
+    }
+
     override val size: Int
         get() = data.size
+
+    override val array: List<Json>
+        get() = data
 }

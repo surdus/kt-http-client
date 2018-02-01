@@ -40,6 +40,7 @@ class HttpClientTest {
                     set("int", 11)
                     set("bool", true)
                     set("empty", null)
+                    set("array", listOf("val1", "val2"))
                 }
             }
         }
@@ -51,6 +52,9 @@ class HttpClientTest {
         assertEquals(11L, json["data"]["objectKey"]["int"].long)
         assertEquals(true, json["data"]["objectKey"]["bool"].bool)
         assertEquals(null, json["data"]["objectKey"]["empty"].string)
+        assertEquals(2, json["data"]["objectKey"]["array"].array!!.size)
+        assertEquals("val1", json["data"]["objectKey"]["array"][0].string)
+        assertEquals("val2", json["data"]["objectKey"]["array"][1].string)
         assertEquals(null, json["data"]["objectKey"]("absent"))
     }
 
@@ -76,6 +80,6 @@ class HttpClientTest {
         val str = response.content!!.inputStream.bufferedReader(Charsets.UTF_8).readText().replace("}{", "},{")
         val json = "[$str]".byteInputStream().reader().toJson()
 
-        assertEquals(5, json["data"].size)
+        assertEquals(5, json.size)
     }
 }
