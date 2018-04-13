@@ -123,6 +123,8 @@ interface Json {
         get() = throw IllegalStateException("Can't get size value")
     val array: List<Json>?
         get() = throw IllegalStateException("Can't get array value")
+    val map: Map<String, Json>?
+        get() = throw IllegalStateException("Can't get array value")
 }
 
 class JsonObject(val data: MutableMap<String, Json> = mutableMapOf()) : Json {
@@ -175,6 +177,9 @@ class JsonObject(val data: MutableMap<String, Json> = mutableMapOf()) : Json {
         }?.toMutableList()
         data[key] = jsonList?.let { JsonArray(it) } ?: JsonNull()
     }
+
+    override val map: Map<String, Json>?
+        get() = data
 }
 
 class JsonNumber(var data: Number? = null) : Json {

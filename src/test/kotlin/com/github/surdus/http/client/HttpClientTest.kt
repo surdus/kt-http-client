@@ -56,6 +56,7 @@ class HttpClientTest {
         assertEquals("val1", json["data"]["objectKey"]["array"][0].string)
         assertEquals("val2", json["data"]["objectKey"]["array"][1].string)
         assertEquals(null, json["data"]["objectKey"]("absent"))
+        assertEquals(setOf("intKey", "stringKey", "objectKey"), json["data"].map!!.keys)
     }
 
     @Test
