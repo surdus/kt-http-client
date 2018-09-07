@@ -1,6 +1,9 @@
 package com.github.surdus.http.content.multipart
 
+import com.github.surdus.http.client.toContentBody
 import com.github.surdus.http.content.Content
+import org.apache.http.HttpEntity
+import org.apache.http.entity.mime.MultipartEntityBuilder
 import java.io.InputStream
 
 class MultipartContent(fill: MultipartContent.() -> Unit): Content {
@@ -12,6 +15,14 @@ class MultipartContent(fill: MultipartContent.() -> Unit): Content {
 
     fun part(name: String, part: MultipartContentPart) {
         parts[name] = part
+    }
+
+    override fun toHttpEntity(): HttpEntity {
+        return MultipartEntityBuilder.create().also {
+            parts.forEach { name, part ->
+                it.addPart(name, toContentBody(part))
+            }
+        }.build()
     }
 }
 

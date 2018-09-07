@@ -1,19 +1,14 @@
 package com.github.surdus.http.client
 
-import com.github.surdus.http.content.BaseContent
 import com.github.surdus.http.content.Content
 import com.github.surdus.http.content.RawContent
-import com.github.surdus.http.content.multipart.MultipartContent
 import com.github.surdus.http.content.multipart.MultipartContentPart
 import com.github.surdus.http.content.multipart.StreamContentPart
 import com.github.surdus.http.content.multipart.StringContentPart
-import org.apache.http.HttpEntity
 import org.apache.http.HttpResponse as ApacheHttpResponse
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase
 import org.apache.http.client.utils.URIBuilder
 import org.apache.http.entity.ContentType
-import org.apache.http.entity.InputStreamEntity
-import org.apache.http.entity.mime.MultipartEntityBuilder
 import org.apache.http.entity.mime.content.ContentBody
 import org.apache.http.entity.mime.content.InputStreamBody
 import org.apache.http.entity.mime.content.StringBody
@@ -41,7 +36,7 @@ class HttpClient : Closeable {
 
         val requestContent = request.content
         if (requestContent != null)
-            apacheHttpRequest.entity = toHttpEntity(requestContent)
+            apacheHttpRequest.entity = requestContent.toHttpEntity()
 
         val res = innerClient.execute(apacheHttpRequest, null)
 
@@ -80,29 +75,6 @@ class ApacheHttpRequest(private val method: String, uri: URI) : HttpEntityEnclos
     override fun getMethod(): String {
         return method
     }
-}
-
-fun toHttpEntity(content: Content): HttpEntity {
-    return when (content) {
-        is MultipartContent -> toHttpEntity(content)
-        is BaseContent -> toHttpEntity(content)
-        else -> throw IllegalArgumentException("Unsupported content type")
-    }
-}
-
-fun toHttpEntity(content: BaseContent): HttpEntity {
-    return InputStreamEntity(content.inputStream, content.contentLength ?: -1).also {
-        it.setContentType(content.contentType)
-        it.setContentEncoding(content.contentEncoding)
-    }
-}
-
-fun toHttpEntity(content: MultipartContent): HttpEntity {
-    return MultipartEntityBuilder.create().also {
-        content.parts.forEach { name, part ->
-            it.addPart(name, toContentBody(part))
-        }
-    }.build()
 }
 
 fun toContentBody(part: MultipartContentPart): ContentBody {

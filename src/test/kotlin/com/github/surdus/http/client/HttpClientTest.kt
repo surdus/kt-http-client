@@ -1,5 +1,6 @@
 package com.github.surdus.http.client
 
+import com.github.surdus.http.content.FormDataContent
 import com.github.surdus.http.content.JsonContent
 import com.github.surdus.http.content.multipart.MultipartContent
 import com.github.surdus.http.content.multipart.StreamContentPart
@@ -72,6 +73,21 @@ class HttpClientTest {
 
         assertEquals("test string", json["form"]["part1"].string)
         assertNotNull(json["files"]["testFile"])
+    }
+
+    @Test
+    fun testPostFormData() {
+        val response = httpClient.exec("POST", "https://postman-echo.com/post") {
+            content = FormDataContent {
+                set("key1", "value1")
+                set("key2!@#", "value2!@#")
+            }
+        }
+
+        val json = response.content!!.toJson()
+
+        assertEquals("value1", json["form"]["key1"].string!!)
+        assertEquals("value2!@#", json["form"]["key2!@#"].string!!)
     }
 
     @Test
